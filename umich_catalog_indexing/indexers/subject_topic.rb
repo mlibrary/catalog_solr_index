@@ -10,6 +10,7 @@ extend Traject::Macros::UMich::SubjectMacros
 # We get the full topic (LCSH), but currently want to ignore
 # entries that are FAST entries (those having second-indicator == 7)
 
+remediated_subjects = YAML.load_file('lib/translation_maps/umich/remediated_subjects.yaml')
 
 skip_FAST = ->(rec, field) do
   field.indicator2 == '7' and field['2'] =~ /fast/
@@ -32,7 +33,15 @@ to_field "topic", extract_marc_unless(%w(
   662a  662abcdefgh
   690a   690abcdevxyz
 
-  ), skip_FAST, :trim_punctuation => true)
+  ), skip_FAST, :trim_punctuation => true) do |rec, acc|
+  end
 
+to_field "topic", extract_marc("650a", :translation_map => "umich/remediated_subjects", :trim_punctuation => true) 
+
+#how do I do this?
+to_field "topic", extract_marc("650abcdevxyz") do |rec, acc|
+  main_heading = []
+  rec.each
+end
 to_field 'lc_subject_display', lcsh_subjects
 to_field 'non_lc_subject_display', non_lcsh_subjects
