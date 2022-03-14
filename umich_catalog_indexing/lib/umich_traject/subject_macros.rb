@@ -29,30 +29,12 @@ module Traject::Macros::UMich
     end
 
     def self.subject_string(field)
-      self.normalize_subject(field.subfields.select { |sf| LOWER_LETTER_PAT.match(sf.code) }.map.with_index do |sf, i| 
-        if i == 0 && !replacements[sf.value].nil?
-          replacements[sf.value]
-        else
-          sf.value 
-        end
-      end.join(" -- "))
+      self.normalize_subject(field.subfields.select { |sf| LOWER_LETTER_PAT.match(sf.code) }.map(&:value).join(" -- "))
     end
 
     def self.subjects_by_ind2(r, ind2_pat)
       fields = r.fields.select { |f| f.tag[0] == '6' and ind2_pat.match(f.indicator2) }
       fields + fields.flat_map { |f| self.eight_eighties_for(r, f) }
-    end
-
-    def self.replacements
-       {
-          "Illegal aliens" => "Undocumented immigrants",
-          "Illegal aliens in literature" => "Undocumented immigrants in literature",
-          "Women illegal aliens" => "Women undocumented immigrants",
-          "Illegal alien children" => "Undocumented immigrant children",
-          "Children of illegal aliens" => "Children of undocumented immigrants",
-          "Alien detention centers" => "Immigrant detention centers"
-        }
-
     end
   end
 

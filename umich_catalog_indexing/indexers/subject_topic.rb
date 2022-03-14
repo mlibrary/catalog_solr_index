@@ -10,7 +10,7 @@ extend Traject::Macros::UMich::SubjectMacros
 # We get the full topic (LCSH), but currently want to ignore
 # entries that are FAST entries (those having second-indicator == 7)
 
-remediated_subjects = YAML.load_file('lib/translation_maps/umich/remediated_subjects.yaml')
+remediated_subjects = Traject::TranslationMap.new('umich/remediated_subjects')
 
 skip_FAST = ->(rec, field) do
   field.indicator2 == '7' and field['2'] =~ /fast/
@@ -36,12 +36,31 @@ to_field "topic", extract_marc_unless(%w(
   ), skip_FAST, :trim_punctuation => true) do |rec, acc|
   end
 
-to_field "topic", extract_marc("650a", :translation_map => "umich/remediated_subjects", :trim_punctuation => true) 
+to_field 'lc_subject_display', lcsh_subjects do |rec, acc, context|
+  remediated_lc_list = Array.new
+  acc.map! do |subj|
+    subjects = subj.split(' -- ')
+    if !remediated_subjects[subjects.first].nil?
+      subjects[0] = remediated_subjects[subjects.first]
 
-#how do I do this?
-to_field "topic", extract_marc("650abcdevxyz") do |rec, acc|
-  main_heading = []
-  rec.each
+      remediated_lc_list.push(subjects.join(' -- ') )
+      nil
+    else
+      subj
+    end
+  end
+  context.clipboard[:remediated_lc_subjects] = remediated_lc_list
+  acc.compact!
+  #put them in context clipboard
 end
-to_field 'lc_subject_display', lcsh_subjects
-to_field 'non_lc_subject_display', non_lcsh_subjects
+
+to_field 'non_lc_subject_display', non_lcsh_subjects do |rec, acc, context|
+  acc << context.clipboard[:remediated_lc_subjects]
+end
+
+to_field 'topic', extract_marc("600a:610a:611a:630a:648a:650a:651a:653a:654a:655a:656a:657a:658a:662a:690a", :translation_map => 'umich/remediated_subjects')
+
+to_field 'topic' do |rec, acc, context|
+  acc << context.clipboard[:remediated_lc_subjects].map{|x| x.split(" -- ").join(" ") }
+end
+
