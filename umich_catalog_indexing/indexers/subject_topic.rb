@@ -34,6 +34,21 @@ to_field "topic", extract_marc_unless(%w(
   690a   690abcdevxyz
 
   ), skip_FAST, :trim_punctuation => true) do |rec, acc|
+
+    acc.map! do |subj|
+      #if !remediated_subjects[subj].nil?
+        #nil
+      #else
+        #subj
+      #end
+
+      if remediated_subjects.to_hash.keys.find { |key| subj.match?(/^#{key}/) }.nil?
+        subj
+      else 
+        nil
+      end
+    end
+    acc.compact!
   end
 
 to_field 'lc_subject_display', lcsh_subjects do |rec, acc, context|
@@ -55,12 +70,12 @@ to_field 'lc_subject_display', lcsh_subjects do |rec, acc, context|
 end
 
 to_field 'non_lc_subject_display', non_lcsh_subjects do |rec, acc, context|
-  acc << context.clipboard[:remediated_lc_subjects]
+  context.clipboard[:remediated_lc_subjects].each {|subj| acc << subj }
 end
 
 to_field 'topic', extract_marc("600a:610a:611a:630a:648a:650a:651a:653a:654a:655a:656a:657a:658a:662a:690a", :translation_map => 'umich/remediated_subjects')
 
 to_field 'topic' do |rec, acc, context|
-  acc << context.clipboard[:remediated_lc_subjects].map{|x| x.split(" -- ").join(" ") }
+  context.clipboard[:remediated_lc_subjects].each{|x| acc << x.split(" -- ").join(" ") }
 end
 
