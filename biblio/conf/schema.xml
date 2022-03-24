@@ -107,6 +107,11 @@
 <filter class="solr.TrimFilterFactory"/>
 '>
 
+<!ENTITY remove_extra_spaces '
+<filter class="solr.TrimFilterFactory"/>
+<filter class="solr.PatternReplaceFilterFactory" pattern="\p{Z}+" replacement=" " replace="all"/>
+'>
+
 <!ENTITY remove_all_numbers '
 <filter class="solr.PatternReplaceFilterFactory" pattern="[\p{N}]" replacement="" replace="all"/>
 '>
@@ -200,15 +205,6 @@
 />
 <filter class="solr.FixBrokenOffsetsFilterFactory"/>
 '>
-
-<!--<!ENTITY try_to_parse_callnumber '-->
-<!--  &remove_punctuation_next_to_a_space;-->
-<!--  <filter class="edu.umich.lib.solr_filters.LCCallNumberNormalizerFilterFactory"/>-->
-<!--  &trim_leading_whitespace_and_punctuation;-->
-<!--  &trim_trailing_whitespace_and_punctuation;-->
-<!--  &remove_punctuation_next_to_a_space;-->
-<!--  &icu_case_folding_and_normalization;-->
-<!--'>-->
 
 
 <!ENTITY pre_tokenization_case_folding '
@@ -575,6 +571,7 @@
     <fieldType name="lc_callnumber_simple" class="solr.TextField">
         <analyzer>
             <tokenizer class="solr.KeywordTokenizerFactory"/>
+            &remove_extra_spaces;
             <filter class="edu.umich.library.library_identifier.solrFilter.LCCallNumberSimpleFilterFactory"/>
         </analyzer>
     </fieldType>
@@ -582,6 +579,7 @@
     <fieldType name="lc_callnumber_simple_passthrough" class="solr.TextField">
         <analyzer>
             <tokenizer class="solr.KeywordTokenizerFactory"/>
+            &remove_extra_spaces;
             <filter class="edu.umich.library.library_identifier.solrFilter.LCCallNumberSimpleFilterFactory"
                     allowInvalid="true"/>
         </analyzer>
@@ -591,36 +589,19 @@
     <fieldType name="lc_callnumber_simple_searchable" class="solr.TextField">
         <analyzer type="index">
             <tokenizer class="solr.KeywordTokenizerFactory"/>
+            &remove_extra_spaces;
             <filter class="edu.umich.library.library_identifier.solrFilter.LCCallNumberSimpleFilterFactory"
                     allowInvalid="true"/>
             <filter class="solr.EdgeNGramFilterFactory" maxGramSize="40" minGramSize="2"/>
         </analyzer>
         <analyzer type="query">
             <tokenizer class="solr.KeywordTokenizerFactory"/>
+            &remove_extra_spaces;
             <filter class="edu.umich.library.library_identifier.solrFilter.LCCallNumberSimpleFilterFactory"
                     allowInvalid="true"/>
         </analyzer>
     </fieldType>
 
-
-    <!--    <fieldType name="lc_callnumber_sortable" class="solr.TextField">-->
-    <!--        <analyzer>-->
-    <!--          <tokenizer class="solr.KeywordTokenizerFactory"/>-->
-    <!--	  &try_to_parse_callnumber;-->
-    <!--        </analyzer>-->
-    <!--    </fieldType>-->
-
-    <!--    <fieldType name="lc_callnumber_searchable" class="solr.TextField"  docValues="false">-->
-    <!--        <analyzer type="index">-->
-    <!--          <tokenizer class="solr.KeywordTokenizerFactory"/>-->
-    <!--    	    &try_to_parse_callnumber;-->
-    <!--            <filter class="solr.EdgeNGramFilterFactory" maxGramSize="40" minGramSize="2"/>-->
-    <!--        </analyzer>-->
-    <!--        <analyzer type="query">-->
-    <!--            <tokenizer class="solr.KeywordTokenizerFactory"/>-->
-    <!--    	    &try_to_parse_callnumber;-->
-    <!--        </analyzer>-->
-    <!--    </fieldType>-->
 
 
     <fieldType name="oclc" class="solr.TextField">
