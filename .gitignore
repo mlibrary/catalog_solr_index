@@ -16,8 +16,15 @@ lib/translation_maps/umich/libLocInfo.yaml
 /umich_catalog_indexing/debug*
 /umich_catalog_indexing/.m2
 /umich_catalog_indexing/.ssh/*
+/new-biblio/*.txt
+/new-biblio/*.zip
+*.pem
+*.der
 /sftp/ssh/*
 !/sftp/ssh/README.md
-*.xml
+/sftp/search_daily_bibs/*.xml
+/umich_catalog_indexing/*.xml
+/umich_catalog_indexing/*/*.xml
+/umich_catalog_indexing/*/*/*.xml
 *.tar.gz
 

@@ -25,3 +25,12 @@ ssh-keygen -t rsa -b 4096 -f ssh_client_rsa_key < /dev/null
 
 mv ssh_client_rsa_key.pub sftp/ssh/
 mv ssh_client_rsa_key sftp/ssh/
+
+
+#######
+##set up keys for new-biblio
+######
+
+openssl genrsa -out new-biblio/biblio.pem 512
+openssl rsa -in new-biblio/biblio.pem -pubout -outform DER -out new-biblio/biblio_public.der
+

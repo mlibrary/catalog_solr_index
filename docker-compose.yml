@@ -34,11 +34,13 @@ services:
       - ./sftp/ssh/ssh_client_rsa_key:/etc/secret-volume/id_rsa:ro
       - gem_cache:/gems
     environment:
-      - SOLR_URL=http://solr:8026/solr/biblio
+      #    - SOLR_URL=http://solr:8026/solr/biblio
+      - SOLR_URL=http://admin:Password!Password1@localhost:8983/solr/biblio
       - REDIS_URL=redis://redis:6379
       - HLB_XML_ENDPOINT=https://apps.lib.umich.edu/browse/categories/xml.php 
         #- JRUBY_OPTS=--debug
       - NODB=1
+    network_mode: host
     env_file:
       - ./umich_catalog_indexing/.env
       - ./umich_catalog_indexing/.env-dev-values
@@ -53,9 +55,23 @@ services:
       - 'redis:/data'
 
   solr:
-    build: biblio/.
+    build: new-biblio/.
     ports:
-     - "8026:8026"
+     - "8983:8983"
+    environment:
+      - ZK_HOST=zoo:2181
+    depends_on:
+      - zoo
+    command: solr-foreground
+
+  zoo:
+    tty: true
+    image: zookeeper
+    ports:
+      - 2181:2181
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888;2181
   
   mock-ht:
     build: mock-ht/.
