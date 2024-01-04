@@ -1,3 +1,5 @@
+.local
+.solargraph.yml
 data
 start_solr.sh
 stop_solr.sh
