@@ -1,11 +1,16 @@
-require 'common/subject.rb'
-require 'marc'
+require "common/subject"
+require "marc"
 RSpec.describe Common::Subject::LCSubject do
   let(:record) do
-    reader = MARC::XMLReader.new('./spec/fixtures/unauthorized_immigrants.xml')
-    for r in reader
+    reader = MARC::XMLReader.new("./spec/fixtures/unauthorized_immigrants.xml")
+    reader.each do |r|
       return r
     end
+  end
+  let(:deprecated_subject_field) do
+    rec = MARC::XMLReader.new("./spec/fixtures/deprecated_subject.xml")
+      .first
+    rec.fields("650").first
   end
   let(:subject_fields) do
     Common::Subject.lc_subject_fields(record)
@@ -30,11 +35,14 @@ RSpec.describe Common::Subject::LCSubject do
     it "returns false for a field with ind2=0 but a $2 that says otherwise" do
       expect(described_class.lc_subject_field?(wrongindicator_subject_field)).to eq(false)
     end
+    it "returns false for term that needs to be remediated" do
+      expect(Common::Subject::LCSubject.lc_subject_field?(deprecated_subject_field)).to eq(false)
+    end
   end
   context "#subject_data_subfield_codes" do
     it "returns array of subfields with a-z codes" do
       subfields = described_class.new(subject_field).subject_data_subfield_codes
-      expect(subfields.map{|sf| sf.code }).to eq(["a","t"])
+      expect(subfields.map { |sf| sf.code }).to eq(["a", "t"])
     end
   end
 
@@ -44,47 +52,61 @@ RSpec.describe Common::Subject::LCSubject do
       expect(output).to eq("United States. Personal Responsibility and Work Opportunity Reconciliation Act of 1996")
     end
     it "puts a -- between v,x,y,or z subfields" do
-      field = MARC::DataField.new( "600", "1", "0", 
-        ["a", "a"], ["v", "v"], ["x", "x"], ["y", "y"], ["z", "z"], ["b","b"])
+      field = MARC::DataField.new("600", "1", "0",
+        ["a", "a"], ["v", "v"], ["x", "x"], ["y", "y"], ["z", "z"], ["b", "b"])
 
       output = described_class.new(field).subject_string
       expect(output).to eq("a--v--x--y--z b")
+    end
+    it "handles custom delimiter" do
+      field = MARC::DataField.new("600", "1", "0",
+        ["a", "a"], ["v", "v"], ["x", "x"], ["y", "y"], ["z", "z"], ["b", "b"])
+
+      output = described_class.new(field).subject_string(" -- ")
+      expect(output).to eq("a -- v -- x -- y -- z b")
     end
   end
 end
 
 RSpec.describe Common::Subject::LCSubject658 do
   let(:subject_field) do
-    MARC::DataField.new( "658", "1", "0", 
-      ["a","Health objective 1"],
-      ["b","handicapped awareness"],["c","NHP01-1991"],
-      ["d", "highly correlated."],["2","ohco"]
-    )
+    MARC::DataField.new("658", "1", "0",
+      ["a", "Health objective 1"],
+      ["b", "handicapped awareness"], ["c", "NHP01-1991"],
+      ["d", "highly correlated."], ["2", "ohco"])
   end
   context "#subject_string" do
     it "returns expected output" do
       output = described_class.new(subject_field).subject_string
       expect(output).to eq("Health objective 1: handicapped awareness [NHP01-1991]--highly correlated")
     end
+    it "returns expected output for custom delimter" do
+      output = described_class.new(subject_field).subject_string(" -- ")
+      expect(output).to eq("Health objective 1: handicapped awareness [NHP01-1991] -- highly correlated")
+    end
   end
 end
 RSpec.describe Common::Subject::LCSubjectHierarchical do
   let(:subject_field) do
-    MARC::DataField.new( "662", "", "", 
-      ["a","World"],
-      ["a","Asia"],
-      ["b","Japan"],
+    MARC::DataField.new("662", "", "",
+      ["a", "World"],
+      ["a", "Asia"],
+      ["b", "Japan"],
       ["g", "Hokkaido (island)"],
-      ["g","Hokkaido (region)"],
-      ["c","Hokkaido (prefecture)"],
-      ["g","Asahi-Dake."],
-      ["2","tgn"]
-    )
+      ["g", "Hokkaido (region)"],
+      ["c", "Hokkaido (prefecture)"],
+      ["g", "Asahi-Dake."],
+      ["2", "tgn"])
   end
   context "#subject_string" do
-    it "returns expected output" do
+    it "returns expected output for default delimiter '--' " do
       output = described_class.new(subject_field).subject_string
       expect(output).to eq("World--Asia--Japan--Hokkaido (island)--Hokkaido (region)--Hokkaido (prefecture)--Asahi-Dake")
+    end
+
+    it "returns expected output for custom delimiter ' -- ' " do
+      output = described_class.new(subject_field).subject_string(" -- ")
+      expect(output).to eq("World -- Asia -- Japan -- Hokkaido (island) -- Hokkaido (region) -- Hokkaido (prefecture) -- Asahi-Dake")
     end
   end
 end
