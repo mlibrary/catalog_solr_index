@@ -7,10 +7,8 @@ require_relative "../lib/sidekiq_jobs"
 require_relative "../lib/index_alma_for_date"
 require_relative "../lib/index_zephir_for_date"
 
-logger = S.logger
 
-today = Date.today
-date = Date.new(today.year, today.month, 1) #First of the month
+start_date = Date.new(today.year, today.month, 1) #First of the month
 
 solr_url = ENV.fetch("REINDEX_SOLR_URL") 
 alma_path = ENV.fetch("DAILY_ALMA_FILES_PATH")
@@ -18,9 +16,9 @@ zephir_path = "production/zephir_daily"
 
 opt_parser = OptionParser.new do |opts|
   opts.banner = "Usage: catchup_alma_since.rb [options] alma||zephir||both"
-  opts.on("-d", "--date=DATE", Date, "Date from which to catchup from. Default is the first of the current month") do |x|
-    raise ArgumentError, "date must be today or earlier" if x > Date.today
-    date = x.strftime("%Y%m%d")
+  opts.on("-d", "--date=DATE", Date, "Date from which to catchup from. Default is the first of the current month") do |date|
+    raise ArgumentError, "date must be today or earlier" if date > Date.today
+    start_date = date
   end
   opts.on("-sSOLR", "--solr=SOLR", "Solr url to index into; options are: reindex|hatcher_prod|macc_prod; Default is reindex: #{solr_url}") do |x|
     case x
@@ -48,23 +46,27 @@ if ARGV.empty? || !(["alma","zephir", "both" ].include?(ARGV[0]) )
 end
 
 repository = ARGV[0]
+
 if ["both","alma"].include?(repository)
-  index(repository: "alma", dir: alma_path)
-end
-if ["both","zephir"].include?(repository)
-  index(repository: "zephir", dir: zephir_path)
-end
-
-
-def index(repository:, dir:)
-  file_paths = SFTP.client.ls(dir)
+  file_paths = SFTP.client.ls(alma_path)
   
-  start_date = DateTime.parse(date)
   start_date.upto(DateTime.now) do |date|
     date_string = date.strftime("%Y%m%d")
-    logger.info "========================"
-    logger.info "Indexing #{repository}.capitalize #{date_string}"
-    logger.info "========================"
-    Object.const_get("Index#{repository.capitalize}ForDate").new(file_paths: file_paths, date: date_string, solr_url: solr_url).run
+    S.logger.info "========================"
+    S.logger.info "Indexing Alma #{date_string}"
+    S.logger.info "========================"
+    IndexAlmaForDate.new(file_paths: file_paths, date: date_string, solr_url: solr_url).run
   end
 end
+
+if ["both","zephir"].include?(repository)
+  file_paths = SFTP.client.ls(zephir_path)
+  (start_date - 1).upto(DateTime.now -1) do |date|
+    date_string = date.strftime("%Y%m%d")
+    S.logger.info "========================"
+    S.logger.info "Indexing Zephir #{date_string}"
+    S.logger.info "========================"
+    IndexZephirForDate.new(file_paths: file_paths, date: date_string, solr_url: solr_url).run
+  end
+end
+
