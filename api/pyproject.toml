@@ -18,7 +18,7 @@ httpx = "^0.28.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"
-ruff = "^0.2.2"
+ruff = "^0.11.2"
 
 [build-system]
 requires = ["poetry-core"]
