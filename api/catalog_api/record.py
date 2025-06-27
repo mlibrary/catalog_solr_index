@@ -706,10 +706,10 @@ class TaggedCitation:
         for field_value in field_content_list:
             if type(field_value) is str:
                 result.append(field_value)
-            elif "original" in field_value.keys():
-                result.append(field_value["original"]["text"])
+            elif hasattr(field_value, "original"):
+                result.append(field_value.original.text)
             else:
-                result.append(field_value["text"])
+                result.append(field_value.text)
         return result
 
     def get_marc_content(self, element):
@@ -747,5 +747,6 @@ class Record(BaseRecord):
         self.record = pymarc.parse_xml_to_array(io.StringIO(data["fullrecord"]))[0]
         BaseRecord.__init__(self, data)
 
+    @property
     def citation(self):
-        return {"tagged": TaggedCitation(marc_record=self.record, base_record=self)}
+        return Citation(marc_record=self.record, base_record=self)
