@@ -45,6 +45,16 @@ class AcademicDiscipline(BaseModel):
     list: list[str]
 
 
+class TaggedCitation(BaseModel):
+    content: str
+    ris: list[str]
+    meta: list[str]
+
+
+class Citation(BaseModel):
+    tagged: list[TaggedCitation]
+
+
 class Record(BaseModel):
     id: str
     title: list[PairedTextField]
@@ -118,6 +128,7 @@ class Record(BaseModel):
     bookplate: list[BareTextField]
     indexing_date: datetime.date
     marc: dict
+    citation: Citation
 
 
 class Response(BaseModel):
