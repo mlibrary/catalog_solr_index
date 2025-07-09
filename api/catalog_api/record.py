@@ -7,6 +7,7 @@ import pymarc
 import io
 import string
 import json
+from datetime import datetime
 
 
 def record_for(id: str) -> Record:
@@ -696,7 +697,7 @@ class TaggedCitation:
         self.base_record = base_record
 
     def to_list(self, tag_mapping=TAG_MAPPING):
-        result = []
+        result = self._non_record_tags()
         for element in tag_mapping:
             for x in self._get_result(element):
                 result.append(x)
@@ -741,6 +742,25 @@ class TaggedCitation:
             else:
                 result.append(field_value["text"])
         return result
+
+    def _non_record_tags(self):
+        return [
+            {
+                "content": "U-M Catalog Search",
+                "ris": ["DB"],
+                "meta": [],
+            },
+            {
+                "content": "University of Michigan Library",
+                "ris": ["DP"],
+                "meta": [],
+            },
+            {
+                "content": datetime.now().strftime("%Y-%m-%d"),
+                "ris": ["Y2"],
+                "meta": ["online_date"],
+            },
+        ]
 
 
 class Citation:

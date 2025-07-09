@@ -2,6 +2,7 @@ import pytest
 import json
 import pymarc
 import string
+from datetime import datetime
 from dataclasses import dataclass, field
 from catalog_api.record import (
     Record,
@@ -1254,7 +1255,9 @@ class TestTaggedCitation:
         subject = TaggedCitation(
             base_record=base_record_stub, marc_record=empty_marc_record
         ).to_list(tag_mapping=base_mapping)
-        assert subject == expected
+
+        for example in expected:
+            assert example in subject
 
     def test_to_list_for_base_multiple_paired_fields(
         self, base_mapping, empty_marc_record
@@ -1274,11 +1277,11 @@ class TestTaggedCitation:
             {"content": "TCONTENT2", "ris": ["EX"], "meta": ["example"]},
         ]
 
-        assert (
-            TaggedCitation(
-                base_record=base_record_stub, marc_record=empty_marc_record
-            ).to_list(tag_mapping=base_mapping)
-        ) == expected
+        subject = TaggedCitation(
+            base_record=base_record_stub, marc_record=empty_marc_record
+        ).to_list(tag_mapping=base_mapping)
+        for example in expected:
+            assert example in subject
 
     def test_to_list_for_base_empty(self, base_mapping, empty_marc_record):
         base_record_stub = BaseRecordFake(field_name=[])
@@ -1382,5 +1385,30 @@ class TestTaggedCitation:
                 "meta": ["keywords"],
             },
         ]
+        for example in expected:
+            assert example in subject
+
+    def test_non_record_specific_tags(self, empty_marc_record):
+        subject = TaggedCitation(
+            base_record=None, marc_record=empty_marc_record
+        ).to_list(tag_mapping=[])
+        expected = [
+            {
+                "content": "U-M Catalog Search",
+                "ris": ["DB"],
+                "meta": [],
+            },
+            {
+                "content": "University of Michigan Library",
+                "ris": ["DP"],
+                "meta": [],
+            },
+            {
+                "content": datetime.now().strftime("%Y-%m-%d"),
+                "ris": ["Y2"],
+                "meta": ["online_date"],
+            },
+        ]
+
         for example in expected:
             assert example in subject
