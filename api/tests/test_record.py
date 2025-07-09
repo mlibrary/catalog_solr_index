@@ -1470,3 +1470,15 @@ class TestTaggedCitation:
         }
 
         assert subject[0] == expected
+
+    def test_end_record_tag(self, empty_marc_record):
+        subject = TaggedCitation(
+            base_record=None, marc_record=empty_marc_record
+        ).to_list(tag_mapping=[])
+        expected = {
+            "content": "",
+            "ris": ["ER"],
+            "meta": [],
+        }
+
+        assert subject[-1] == expected
