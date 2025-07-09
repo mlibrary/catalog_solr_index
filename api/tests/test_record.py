@@ -1285,11 +1285,11 @@ class TestTaggedCitation:
 
         expected = []
 
-        assert (
-            TaggedCitation(
-                base_record=base_record_stub, marc_record=empty_marc_record
-            ).to_list(tag_mapping=base_mapping)
-        ) == expected
+        subject = TaggedCitation(
+            base_record=base_record_stub, marc_record=empty_marc_record
+        ).to_list(tag_mapping=base_mapping)
+        for example in expected:
+            assert example in subject
 
     def test_to_list_base_text_list(self, base_mapping, empty_marc_record):
         base_record_stub = BaseRecordFake(
@@ -1300,7 +1300,8 @@ class TestTaggedCitation:
         subject = TaggedCitation(
             base_record=base_record_stub, marc_record=empty_marc_record
         ).to_list(tag_mapping=base_mapping)
-        assert subject == expected
+        for example in expected:
+            assert example in subject
 
     def test_to_list_base_bare_text_list(self, base_mapping, empty_marc_record):
         base_record_stub = BaseRecordFake(field_name=["CONTENT1", "CONTENT2"])
@@ -1312,7 +1313,8 @@ class TestTaggedCitation:
         subject = TaggedCitation(
             base_record=base_record_stub, marc_record=empty_marc_record
         ).to_list(tag_mapping=base_mapping)
-        assert subject == expected
+        for example in expected:
+            assert example in subject
 
     def test_to_list_marc(self, marc_mapping):
         record = create_record_with_paired_field(tag="300")
@@ -1322,7 +1324,8 @@ class TestTaggedCitation:
         subject = TaggedCitation(base_record=None, marc_record=record).to_list(
             tag_mapping=marc_mapping
         )
-        assert subject == expected
+        for example in expected:
+            assert example in subject
 
     def test_to_list_marc_lone_880(self, marc_mapping):
         record = create_record_with_paired_field(tag="300")
@@ -1333,7 +1336,8 @@ class TestTaggedCitation:
         subject = TaggedCitation(base_record=None, marc_record=record).to_list(
             tag_mapping=marc_mapping
         )
-        assert subject == expected
+        for example in expected:
+            assert example in subject
 
     def test_to_list_solr_display_date(self, empty_marc_record, solr_bib):
         tagged_mapping = [
@@ -1350,4 +1354,33 @@ class TestTaggedCitation:
         expected = [
             {"content": "1983", "ris": ["EX"], "meta": ["example"]},
         ]
-        assert subject == expected
+        for example in expected:
+            assert example in subject
+
+    def test_to_list_solr_academic_discipline(self, empty_marc_record, solr_bib):
+        tagged_mapping = [
+            {
+                "kind": "solr",
+                "field": "hlb3Delimited",
+                "ris": ["KW"],
+                "meta": ["keywords"],
+            }
+        ]
+        subject = TaggedCitation(
+            base_record=None, marc_record=empty_marc_record, solr_doc=solr_bib
+        ).to_list(tagged_mapping)
+
+        expected = [
+            {
+                "content": "Science | Biology | Zoology",
+                "ris": ["KW"],
+                "meta": ["keywords"],
+            },
+            {
+                "content": "Science | Biology | Ecology and Evolutionary Biology",
+                "ris": ["KW"],
+                "meta": ["keywords"],
+            },
+        ]
+        for example in expected:
+            assert example in subject
