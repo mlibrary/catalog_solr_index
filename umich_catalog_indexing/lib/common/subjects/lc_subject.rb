@@ -31,6 +31,7 @@ module Common
       # @return [Boolean]
       def self.lc_subject_field?(field)
         SUBJECT_FIELDS.include?(field.tag) &&
+          field.tag != "653" &&
           field.indicator2 == "0" &&
           lcsh_subject_field_2?(field)
       end

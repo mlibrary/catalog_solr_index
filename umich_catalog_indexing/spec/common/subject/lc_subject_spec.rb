@@ -27,6 +27,10 @@ RSpec.describe Common::Subjects::LCSubject do
     it "returns false for a field with ind2=0 but a $2 that says otherwise" do
       expect(described_class.lc_subject_field?(wrongindicator_subject_field)).to eq(false)
     end
+    it "is false for a 653 with ind2=0" do
+      not_lc_subject = MARC::DataField.new("653", "0", "0", ["a", "subjectA"])
+      expect(described_class.lc_subject_field?(not_lc_subject)).to eq(false)
+    end
   end
   context "#subject_data_subfield_codes" do
     it "returns array of subfields with a-z codes" do
